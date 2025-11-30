@@ -8,7 +8,7 @@ inThisBuild(
     name                     := "zio-uuid",
     organization             := "com.guizmaii",
     homepage                 := Some(url("https://github.com/guizmaii-opensource/zio-uuid")),
-    zioVersion               := "2.1.22",
+    zioVersion               := "2.1.23",
     scala213                 := "2.13.17",
     scala3                   := "3.3.7",
     crossScalaVersions -= scala212.value,
