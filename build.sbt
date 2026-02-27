@@ -14,6 +14,8 @@ inThisBuild(
     crossScalaVersions       := Seq(scala3.value),
     scalaVersion             := scala3.value,
     ciTargetJavaVersions     := Seq("17", "21", "25"),
+    semanticdbEnabled        := true,
+    semanticdbVersion        := scalafixSemanticdb.revision,
     ciEnabledBranches        := Seq("main"),
     ciPostReleaseJobs        := Seq.empty,
     Test / parallelExecution := false,
