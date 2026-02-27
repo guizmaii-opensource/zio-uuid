@@ -9,9 +9,10 @@ inThisBuild(
     organization             := "com.guizmaii",
     homepage                 := Some(url("https://github.com/guizmaii-opensource/zio-uuid")),
     zioVersion               := "2.1.23",
-    scala213                 := "2.13.18",
     scala3                   := "3.3.7",
-    crossScalaVersions -= scala212.value,
+    crossScalaVersions       := Seq(scala3.value),
+    scalaVersion             := scala3.value,
+    ciTargetJavaVersions     := Seq("17", "21", "25"),
     ciEnabledBranches        := Seq("main"),
     ciPostReleaseJobs        := Seq.empty,
     Test / parallelExecution := false,
@@ -58,8 +59,8 @@ lazy val `zio-uuid` =
   project
     .in(file("zio-uuid"))
     .settings(stdSettings(Some("zio-uuid")))
-    .settings(addOptionsOn("2.13")("-Xsource:3"))
     .settings(
+      scalacOptions ++= Seq("-language:noAutoTupling"), // See https://github.com/scala/scala3/discussions/19255
       libraryDependencies ++= Seq(
         "dev.zio"           %%% "zio"         % zioVersion.value,
         "dev.zio"            %% "zio-prelude" % "1.0.0-RC46",
