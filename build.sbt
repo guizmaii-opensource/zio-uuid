@@ -15,7 +15,7 @@ inThisBuild(
     ciTargetJavaVersions     := Seq("17", "21", "25"),
     semanticdbEnabled        := true,
     semanticdbVersion        := scalafixSemanticdb.revision,
-    scalacOptions           += "-Xsemanticdb",
+    scalacOptions += "-Xsemanticdb",
     ciEnabledBranches        := Seq("main"),
     ciPostReleaseJobs        := Seq.empty,
     Test / parallelExecution := false,
@@ -69,9 +69,9 @@ lazy val `zio-uuid` =
         "dev.zio"            %% "zio-prelude" % "1.0.0-RC46",
         "dev.zio"           %%% "zio-json"    % "0.9.0"          % Optional,
         "dev.zio"           %%% "zio-test"    % zioVersion.value % Test,
-        "org.scalameta"     %%% "munit"       % "1.2.3"          % Test,
+        "org.scalameta"     %%% "munit"       % "1.2.4"          % Test,
         "com.github.poslegm" %% "munit-zio"   % "0.4.0"          % Test,
-      )
+      ),
     )
 
 lazy val docs =
