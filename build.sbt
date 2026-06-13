@@ -9,7 +9,7 @@ inThisBuild(
     organization             := "com.guizmaii",
     homepage                 := Some(url("https://github.com/guizmaii-opensource/zio-uuid")),
     zioVersion               := "2.1.26",
-    scala3                   := "3.3.7",
+    scala3                   := "3.3.8",
     crossScalaVersions       := Seq(scala3.value),
     scalaVersion             := scala3.value,
     ciTargetJavaVersions     := Seq("17", "21", "25"),
@@ -69,7 +69,7 @@ lazy val `zio-uuid` =
         "dev.zio"            %% "zio-prelude" % "1.0.0-RC47",
         "dev.zio"           %%% "zio-json"    % "0.9.2"          % Optional,
         "dev.zio"           %%% "zio-test"    % zioVersion.value % Test,
-        "org.scalameta"     %%% "munit"       % "1.3.0"          % Test,
+        "org.scalameta"     %%% "munit"       % "1.3.3"          % Test,
         "com.github.poslegm" %% "munit-zio"   % "0.4.0"          % Test,
       ),
     )
