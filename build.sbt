@@ -9,7 +9,7 @@ inThisBuild(
     organization             := "com.guizmaii",
     homepage                 := Some(url("https://github.com/guizmaii-opensource/zio-uuid")),
     zioVersion               := "2.1.26",
-    scala3                   := "3.3.7",
+    scala3                   := "3.3.8",
     crossScalaVersions       := Seq(scala3.value),
     scalaVersion             := scala3.value,
     ciTargetJavaVersions     := Seq("17", "21", "25"),
