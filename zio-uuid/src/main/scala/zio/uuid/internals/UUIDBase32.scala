@@ -94,6 +94,8 @@ object UUIDBase32 {
         case 'x' => 29L
         case 'y' => 30L
         case 'z' => 31L
+        // Caught by the `NonFatal` handler below and reported as an invalid character.
+        case _   => throw new IllegalArgumentException(s"Invalid base32 character: '$c'")
       }
 
     if (s.length != 26) Left("String representation should be exactly 26 significant characters")

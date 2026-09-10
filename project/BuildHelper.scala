@@ -5,7 +5,7 @@ import sbt.Keys.*
 
 object BuildHelper {
 
-  val scala3: String = "3.3.8"
+  val scala3: String = "3.9.0"
 
   private val javaTarget = "17"
 
