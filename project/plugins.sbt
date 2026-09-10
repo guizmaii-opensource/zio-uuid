@@ -1,12 +1,6 @@
-val zioSbtVersion = "0.6.3"
-
-addSbtPlugin("dev.zio" % "zio-sbt-ecosystem" % zioSbtVersion)
-addSbtPlugin("dev.zio" % "zio-sbt-ci"        % zioSbtVersion)
-addSbtPlugin("dev.zio" % "zio-sbt-website"   % zioSbtVersion)
-
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix"  % "0.14.8")
-addSbtPlugin("org.scalameta" % "sbt-scalafmt"  % "2.6.2")
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.4.4")
-addSbtPlugin("org.typelevel" % "sbt-tpolecat"  % "0.5.3")
-
-resolvers ++= Resolver.sonatypeOssRepos("public")
+addSbtPlugin("com.timushev.sbt" % "sbt-updates"    % "0.6.4")
+addSbtPlugin("ch.epfl.scala"    % "sbt-scalafix"   % "0.14.5")
+addSbtPlugin("org.scalameta"    % "sbt-scalafmt"   % "2.5.6")
+addSbtPlugin("org.scoverage"    % "sbt-scoverage"  % "2.4.1")
+addSbtPlugin("org.typelevel"    % "sbt-tpolecat"   % "0.5.2")
+addSbtPlugin("com.github.sbt"   % "sbt-ci-release" % "1.11.2")

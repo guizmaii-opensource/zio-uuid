@@ -1,32 +1,72 @@
-enablePlugins(
-  ZioSbtEcosystemPlugin,
-  ZioSbtCiPlugin,
-)
+import BuildHelper.{noDoc, scala3, stdSettings}
+
+Global / onChangedBuildSource := ReloadOnSourceChanges
+
+ThisBuild / scalaVersion      := scala3
+ThisBuild / scalafmtCheck     := true
+ThisBuild / scalafmtSbtCheck  := true
+ThisBuild / scalafmtOnCompile := !insideCI.value
+ThisBuild / scalafixOnCompile := !insideCI.value
+ThisBuild / semanticdbEnabled := true
+ThisBuild / semanticdbVersion := scalafixSemanticdb.revision // use Scalafix compatible version
+
+// ### Aliases ###
+
+addCommandAlias("tc", "Test/compile")
+addCommandAlias("ctc", "clean; tc")
+addCommandAlias("rctc", "reload; ctc")
+addCommandAlias("fix", "scalafixAll; scalafmtAll; scalafmtSbt")
+addCommandAlias("check", "scalafixAll --check; scalafmtCheckAll; scalafmtSbtCheck")
+
+// ### Dependencies ###
+
+lazy val zioVersion = "2.1.26"
+
+// ### Modules ###
+
+lazy val root =
+  project
+    .in(file("."))
+    .settings(noDoc *)
+    .settings(
+      name               := "zio-uuid",
+      publish / skip     := true,
+      crossScalaVersions := Nil, // https://www.scala-sbt.org/1.x/docs/Cross-Build.html#Cross+building+a+project+statefully
+    )
+    .aggregate(
+      `zio-uuid`
+    )
+
+lazy val `zio-uuid` =
+  project
+    .in(file("zio-uuid"))
+    .settings(stdSettings *)
+    .settings(
+      name               := "zio-uuid",
+      crossScalaVersions := Seq(scala3),
+      libraryDependencies ++= Seq(
+        "dev.zio"            %% "zio"         % zioVersion,
+        "dev.zio"            %% "zio-prelude" % "1.0.0-RC48",
+        "dev.zio"            %% "zio-json"    % "1.0.0"    % Optional,
+        "dev.zio"            %% "zio-test"    % zioVersion % Test,
+        "org.scalameta"      %% "munit"       % "1.3.6"    % Test,
+        "com.github.poslegm" %% "munit-zio"   % "0.4.1"    % Test,
+      ),
+      testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
+    )
 
 inThisBuild(
   List(
-    name                     := "zio-uuid",
     organization             := "com.guizmaii",
     homepage                 := Some(url("https://github.com/guizmaii-opensource/zio-uuid")),
-    zioVersion               := "2.1.26",
-    scala3                   := "3.3.8",
-    crossScalaVersions       := Seq(scala3.value),
-    scalaVersion             := scala3.value,
-    ciTargetJavaVersions     := Seq("17", "21", "25"),
-    semanticdbEnabled        := true,
-    semanticdbVersion        := scalafixSemanticdb.revision,
-    scalacOptions += "-Xsemanticdb",
-    ciEnabledBranches        := Seq("main"),
-    ciPostReleaseJobs        := Seq.empty,
+    licenses                 := List("Apache 2.0" -> url("https://opensource.org/license/apache-2.0")),
     Test / parallelExecution := false,
     Test / fork              := true,
     run / fork               := true,
-    ciJvmOptions ++= Seq("-Xms6G", "-Xmx6G", "-Xss4M", "-XX:+UseG1GC"),
     scalafixDependencies ++= List(
       "com.github.vovapolu"                      %% "scaluzzi" % "0.1.23",
       "io.github.ghostbuster91.scalafix-unified" %% "unified"  % "0.0.9",
     ),
-    licenses                 := Seq(License.Apache2),
     developers               := List(
       Developer(
         "ant8e",
@@ -43,51 +83,3 @@ inThisBuild(
     ),
   )
 )
-
-addCommandAlias("updateReadme", "reload;docs/generateReadme")
-
-lazy val root =
-  project
-    .in(file("."))
-    .settings(
-      name               := "zio-uuid",
-      publish / skip     := true,
-      crossScalaVersions := Nil, // https://www.scala-sbt.org/1.x/docs/Cross-Build.html#Cross+building+a+project+statefully
-    )
-    .aggregate(
-      `zio-uuid`
-    )
-
-lazy val `zio-uuid` =
-  project
-    .in(file("zio-uuid"))
-    .settings(stdSettings(Some("zio-uuid")))
-    .settings(
-      scalacOptions ++= Seq("-language:noAutoTupling"), // See https://github.com/scala/scala3/discussions/19255
-      libraryDependencies ++= Seq(
-        "dev.zio"           %%% "zio"         % zioVersion.value,
-        "dev.zio"            %% "zio-prelude" % "1.0.0-RC48",
-        "dev.zio"           %%% "zio-json"    % "1.0.0"          % Optional,
-        "dev.zio"           %%% "zio-test"    % zioVersion.value % Test,
-        "org.scalameta"     %%% "munit"       % "1.3.6"          % Test,
-        "com.github.poslegm" %% "munit-zio"   % "0.4.1"          % Test,
-      ),
-    )
-
-lazy val docs =
-  project
-    .in(file("zio-uuid-docs"))
-    .settings(
-      moduleName                                 := "zio-uuid-docs",
-      scalacOptions -= "-Yno-imports",
-      scalacOptions -= "-Xfatal-warnings",
-      projectName                                := "zio-uuid",
-      mainModuleName                             := (`zio-uuid` / moduleName).value,
-      projectStage                               := ProjectStage.ProductionReady,
-      ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(`zio-uuid`),
-      readmeCredits                              :=
-        "This library is a fork of the [uuid4cats-effect](https://github.com/ant8e/uuid4cats-effect) library made by Antoine Comte (https://github.com/ant8e)",
-      readmeLicense += s"\n\nCopyright 2023-${java.time.Year.now()} Jules Ivanic and the zio-uuid contributors.",
-    )
-    .enablePlugins(WebsitePlugin)
-    .dependsOn(`zio-uuid`)
