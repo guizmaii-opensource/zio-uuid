@@ -285,7 +285,7 @@ class TypeIDSuite extends FunSuite {
   }
 
   implicit class uuidOps(sc: StringContext) {
-    def uuid(args: Any*): UUID = UUID.fromString(sc.s(args: _*))
+    def uuid(args: Any*): UUID = UUID.fromString(sc.s(args*))
   }
 
   implicit class ValidationOps[E, A](v: Validation[E, A]) {
