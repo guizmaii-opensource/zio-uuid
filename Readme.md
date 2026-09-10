@@ -1,107 +1,120 @@
 # zio-uuid
 
-[![Production Ready](https://img.shields.io/badge/Project%20Stage-Production%20Ready-brightgreen.svg)](https://github.com/zio/zio/wiki/Project-Stages) ![CI Badge](https://github.com/zio/zio-uuid/workflows/CI/badge.svg) [![Sonatype Releases](https://img.shields.io/nexus/r/https/oss.sonatype.org/com.guizmaii/zio-uuid_2.13.svg?label=Sonatype%20Release)](https://oss.sonatype.org/content/repositories/releases/com/guizmaii/zio-uuid_2.13/) [![Sonatype Snapshots](https://img.shields.io/nexus/s/https/oss.sonatype.org/com.guizmaii/zio-uuid_2.13.svg?label=Sonatype%20Snapshot)](https://oss.sonatype.org/content/repositories/snapshots/com/guizmaii/zio-uuid_2.13/) [![javadoc](https://javadoc.io/badge2/com.guizmaii/zio-uuid-docs_2.13/javadoc.svg)](https://javadoc.io/doc/com.guizmaii/zio-uuid-docs_2.13) [![zio-uuid](https://img.shields.io/github/stars/zio/zio-uuid?style=social)](https://github.com/zio/zio-uuid)
+[![CI](https://github.com/guizmaii-opensource/zio-uuid/actions/workflows/ci.yaml/badge.svg)](https://github.com/guizmaii-opensource/zio-uuid/actions/workflows/ci.yaml)
+[![Maven Central](https://img.shields.io/maven-central/v/com.guizmaii/zio-uuid_3.svg)](https://central.sonatype.com/artifact/com.guizmaii/zio-uuid_3)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
-[zio-uuid](https://github.com/guizmaii-opensource/zio-uuid) is a "ZIOfied" fork
-of [uuid4cats-effect](https://github.com/ant8e/uuid4cats-effect) by [Antoine Comte](https://github.com/ant8e)
+Time-based, sortable UUIDs and [TypeIDs](https://github.com/jetify-com/typeid) for ZIO 2.
 
-## Introduction
+`zio-uuid` is a "ZIOfied" fork of [uuid4cats-effect](https://github.com/ant8e/uuid4cats-effect)
+by [Antoine Comte](https://github.com/ant8e).
 
-This library adds support for the following types:
+## What you get
 
-|         |         time-based         | sortable | random |
-|--------:|:--------------------------:|:--------:|:------:|
-| UUID v1 | ✅ <br/> gregorian calendar |          |        |
-| UUID v6 | ✅ <br/> gregorian calendar |    ✅     |        |
-| UUID v7 |     ✅ <br/>unix epoch      |    ✅     |   ✅    |
+|         | time-based                 | sortable | random |
+|--------:|:---------------------------|:--------:|:------:|
+| UUID v1 | ✅ gregorian calendar       |          |        |
+| UUID v6 | ✅ gregorian calendar       |    ✅     |        |
+| UUID v7 | ✅ unix epoch               |    ✅     |   ✅    |
 
-Implementation based on this [UUID RFC Draft](https://datatracker.ietf.org/doc/html/draft-ietf-uuidrev-rfc4122bis-03)
+Each version has its own type — `UUIDv1`, `UUIDv6`, `UUIDv7` — so you cannot accidentally pass one
+where another is expected. They are [zio-prelude](https://github.com/zio/zio-prelude) subtypes of
+`java.util.UUID`, so they are usable anywhere a `UUID` is, at no runtime cost.
 
-In addition to UUID, there is also support for [TypeIDs](https://github.com/jetpack-io/typeid). TypeIDs are a modern,
-type-safe extension of UUIDv7
+Implementation follows [RFC 9562](https://datatracker.ietf.org/doc/html/rfc9562).
 
-_ZIO implementation note:_    
-Note, that we don't provide a UUIDv4 implementation in this lib. ZIO is already providing one
-with `ZIO.randomWith(_.nextUUID)`
+There is no UUIDv4 here on purpose: ZIO already provides one via `ZIO.randomWith(_.nextUUID)`.
 
 ## Installation
 
-In order to use this library, we need to add the following line in our `build.sbt` file:
-
 ```scala
-libraryDependencies += "com.guizmaii" %% "zio-uuid" % "1.0.0"
+libraryDependencies += "com.guizmaii" %% "zio-uuid" % "1.1.1"
 ```
 
-## Example
+Scala 3 only. Requires Java 17+.
+
+## Usage
+
+Generators are services. Provide the layer once, then use the accessors:
 
 ```scala
+import zio.*
 import zio.uuid.*
 
-val ids =
-  (
-    for {
-      uuid1 <- UUIDGenerator.uuidV7
-      uuid2 <- UUIDGenerator.uuidV7
-      typeid <- TypeIDGenerator.generate("myprefix")
-    } yield (uuid1, uuid2, typeid.value)
-  ).provideLayers(UUIDGenerator.live, TypeIDGenerator.live)
+val program: ZIO[UUIDGenerator & TypeIDGenerator, IllegalArgumentException, Unit] =
+  for {
+    v7     <- UUIDGenerator.uuidV7
+    v6     <- UUIDGenerator.uuidV6
+    v1     <- UUIDGenerator.uuidV1
+    typeid <- TypeIDGenerator.generate("user")
+    _      <- Console.printLine(typeid.value).orDie // e.g. user_01h455vb4pex5vsknk084sn02q
+  } yield ()
+
+program.provide(UUIDGenerator.live, TypeIDGenerator.live)
 ```
 
-## ⚠️ Warnings ⚠️
+### TypeIDs
 
-Uniqueness of generated time-based UUIDs is guaranteed when using the same generator.
+A [TypeID](https://github.com/jetify-com/typeid) is a UUIDv7 with a type prefix, encoded in
+base32. `TypeID` is a plain case class of `prefix` and `uuid`; `value` renders the canonical string.
 
-The generators are stateful! They are using a `Ref` internally to keep track of their internal state.
+```scala
+import java.util.UUID
+import zio.uuid.TypeID
 
-The `UUIDGenerator` and `TypeIDGenerator` companion object are providing accessor functions to ease their usage but, because the generators are stateful,
-the way the generator instance is provided to these functions calls can lead to generated UUIDs/TypeIDs being invalid regarding the RFC.
+TypeID.decode("user_01h455vb4pex5vsknk084sn02q") // Validation[DecodeError, TypeID]
+TypeID.build("user", UUID.fromString("..."))     // Validation[BuildError, TypeID]
+```
 
-Do not do this:
+Both return a zio-prelude `Validation`, so invalid prefixes and non-UUIDv7 inputs are rejected
+rather than thrown. A prefix must be at most 63 lowercase ASCII characters.
+
+A zio-json `JsonCodec[TypeID]` is provided. `zio-json` is an optional dependency — add it yourself
+if you want the codec:
+
+```scala
+libraryDependencies += "dev.zio" %% "zio-json" % "1.0.0"
+```
+
+## ⚠️ The generators are stateful
+
+Uniqueness and monotonicity are only guaranteed **per generator instance**. Each generator keeps its
+state in a `Ref`, so providing the layer more than once gives you independent generators, and the
+UUIDs they produce are no longer monotonically increasing relative to each other.
+
+Do **not** do this — each `provideLayer` builds a fresh generator:
+
 ```scala
 val id0 = UUIDGenerator.uuidV7.provideLayer(UUIDGenerator.live)
 val id1 = UUIDGenerator.uuidV7.provideLayer(UUIDGenerator.live)
 ```
-This will lead to non-monotonically increasing UUIDs/TypeIDs, which is invalid regarding the RFCs.
 
-Do this instead:
+Do this instead — one generator, shared:
+
 ```scala
 (
   for {
     id0 <- UUIDGenerator.uuidV7
     id1 <- UUIDGenerator.uuidV7
-    // ...
   } yield ()
 ).provideLayer(UUIDGenerator.live)
 ```
 
-**The best way to inject a `UUIDGenerator` or a `TypeIDGenerator` instance is to inject its `live` layer in the boot sequence of your program 
-so that the same instance is reused everywhere in your program and you don't risk any issue.**
-
-## Documentation
-
-Learn more on the [zio-uuid homepage](https://github.com/guizmaii-opensource/zio-uuid)!
+The safest approach is to provide `UUIDGenerator.live` once in your application's boot sequence, so
+the same instance is reused everywhere.
 
 ## Contributing
 
-For the general guidelines, see ZIO [contributor's guide](https://zio.dev/contributor-guidelines).
-
-## Code of Conduct
-
-See the [Code of Conduct](https://zio.dev/code-of-conduct)
-
-## Support
-
-Come chat with us on [![Badge-Discord]][Link-Discord].
-
-[Badge-Discord]: https://img.shields.io/discord/629491597070827530?logo=discord "chat on discord"
-[Link-Discord]: https://discord.gg/2ccFBr4 "Discord"
+Issues and pull requests are welcome at
+[guizmaii-opensource/zio-uuid](https://github.com/guizmaii-opensource/zio-uuid).
 
 ## Credits
 
-This library is a fork of the [uuid4cats-effect](https://github.com/ant8e/uuid4cats-effect) library made by Antoine Comte (https://github.com/ant8e)
+A fork of [uuid4cats-effect](https://github.com/ant8e/uuid4cats-effect)
+by [Antoine Comte](https://github.com/ant8e).
 
 ## License
 
-[License](LICENSE)
+[Apache 2.0](LICENSE)
 
-Copyright 2023-2023 Jules Ivanic and the zio-uuid contributors.
+Copyright 2023-2026 Jules Ivanic and the zio-uuid contributors.
