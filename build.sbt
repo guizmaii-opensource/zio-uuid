@@ -47,7 +47,7 @@ lazy val `zio-uuid` =
       libraryDependencies ++= Seq(
         "dev.zio"            %% "zio"         % zioVersion,
         "dev.zio"            %% "zio-prelude" % "1.0.0-RC48",
-        "dev.zio"            %% "zio-json"    % "1.0.0"    % Optional,
+        "dev.zio"            %% "zio-json"    % "1.1.0"    % Optional,
         "dev.zio"            %% "zio-test"    % zioVersion % Test,
         "org.scalameta"      %% "munit"       % "1.3.6"    % Test,
         "com.github.poslegm" %% "munit-zio"   % "0.4.1"    % Test,
