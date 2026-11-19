@@ -46,7 +46,7 @@ lazy val `zio-uuid` =
       crossScalaVersions := Seq(scala3),
       libraryDependencies ++= Seq(
         "dev.zio"            %% "zio"         % zioVersion,
-        "dev.zio"            %% "zio-prelude" % "1.0.0-RC48",
+        "dev.zio"            %% "zio-prelude" % "1.0.0-RC49",
         "dev.zio"            %% "zio-json"    % "1.1.1"    % Optional,
         "dev.zio"            %% "zio-test"    % zioVersion % Test,
         "org.scalameta"      %% "munit"       % "1.3.6"    % Test,
